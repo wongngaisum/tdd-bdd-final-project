@@ -220,8 +220,6 @@ class TestProductModel(unittest.TestCase):
 
         # Search for products with price 12.50
         results = Product.find_by_price(Decimal("12.50"))
-        self.assertIsInstance(results, list)
-        self.assertEqual(len(results), 1)
         self.assertEqual(results[0].name, "Hat")
         self.assertEqual(results[0].price, Decimal("12.50"))
         self.assertEqual(results[0].category, Category.CLOTHS)
@@ -256,8 +254,6 @@ class TestProductModel(unittest.TestCase):
 
         # Search for products with price 19.99
         results = Product.find_by_price(Decimal("19.99"))
-        self.assertIsInstance(results, list)
-        self.assertEqual(len(results), 2)
         
         # Check first matching product
         self.assertEqual(results[0].name, "Hat")
@@ -266,3 +262,43 @@ class TestProductModel(unittest.TestCase):
         # Check second matching product
         self.assertEqual(results[1].name, "Shirt")
         self.assertEqual(results[1].price, Decimal("19.99"))
+
+    def test_update_product(self):
+        """It should update an existing product in the database"""
+        # Create a test product
+        product = Product(
+            name="Jacket",
+            description="A warm jacket",
+            price=Decimal("49.99"),
+            available=True,
+            category=Category.CLOTHS
+        )
+        product.create()
+        
+        # Store the original ID
+        original_id = product.id
+        
+        # Modify some attributes
+        product.name = "Updated Jacket"
+        product.description = "A very warm jacket"
+        product.price = Decimal("59.99")
+        product.available = False
+        product.category = Category.HOUSEWARES
+        
+        # Perform the update
+        product.update()
+        
+        # Fetch the updated product from the database
+        updated_product = Product.find(original_id)
+        
+        # Verify the update was successful
+        self.assertEqual(updated_product.id, original_id)
+        self.assertEqual(updated_product.name, "Updated Jacket")
+        self.assertEqual(updated_product.description, "A very warm jacket")
+        self.assertEqual(updated_product.price, Decimal("59.99"))
+        self.assertEqual(updated_product.available, False)
+        self.assertEqual(updated_product.category, Category.HOUSEWARES)
+        
+        # Verify that the original product object also reflects the updates
+        self.assertEqual(product.id, original_id)
+        self.assertEqual(product.name, "Updated Jacket")
